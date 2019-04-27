@@ -1,31 +1,40 @@
 const net = require('net');
-const chalk = require('chalk');
 const args = require('./command_argument_handler.js');
 const log = require('./log_util.js').log;
-
+const readline = require('readline');
 const _ = require('lodash');
-const input = process.stdin;
-input.setEncoding('utf-8');
+
+const input = readline.createInterface({
+	input: process.stdin,
+	output: process.stdout,
+});
 
 log("Connected to: ",args.paramsObject.host.value);
 
-const client = net.createConnection(args.getConnectionOptions(), 
+let client = new net.Socket();
+
+client = client.connect(
+	args.getConnectionOptions(), 
 	() => {
-		client.write('now we rokkin world!\r\n');
+		resetInput();		
 	}
 );
 
-client.on('data', (data) => {
-	log("data",data.toString());
-	log(':~$');
-	input.on('data',function(data){
-		client.write(data);
-	});		
+function resetInput(){
+	input.question(':~$ ',writeToServer);	
+}
 
+function writeToServer(data){
+	client.write(data);
+}
+
+client.on('data', (data) => {
+	log(data.toString());
+	resetInput();
 });
 
 client.on('end', () => {
-	console.log('disconnected from server');
+	log('disconnected from server');
 });
 
 
