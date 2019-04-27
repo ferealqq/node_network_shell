@@ -3,11 +3,15 @@ const { executeCommand } = require('./command_handler.js');
 
 var server = net.createServer(function(socket) {
 	socket.on('data',(data)=>{
-		console.log(data.toString());
-
+		console.log("data to string: ",data.toString());
 		executeCommand(data.toString())
-		.then(res=> socket.write(res) )
-		.catch(err => socket.write("Command not found"));
+		.then(response=>{
+			console.log("response: ",response);
+			if(response === "")
+				socket.write("$xo_reset_input$");
+			else
+				socket.write(response);
+		}).catch(err => socket.write("Command not found"));
 	});	
 });
 
